@@ -268,6 +268,7 @@ def out_directionsArr(directionsArr):
         f.write("\n")
     f.write("----------------------------------------" + "\n")
     f.close()
+
 def out_weightsArr(weightsArr):
     f = open('weightsArr.txt', 'a')
     for str_temp in weightsArr:
@@ -353,13 +354,12 @@ def main():
     weightsArr=numpy.ones([14,8])
     # 每个方向走的次数
     directionsArr = numpy.ones([14, 8])
-    # 开始计算
+    # 开始计算 range里是总次数
     for i in range(20):
         print '.................'+str(i)+'........................'
         run_one_step(weightsArr,directionsArr)
         out_weightsArr(weightsArr)
         out_directionsArr(directionsArr)
-
     # 显示用时
     elapsed = (time.clock() - start)
     print("Time used:", elapsed)

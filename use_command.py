@@ -164,12 +164,12 @@ def main():
         # 把现在文件状态保存到roads文件夹
         saveToRoad(i)
         # 把现在xyz文件保存到xyzs文件夹
-        # saveToXYZ(i)
-        saveToXYZ2(i)
+        saveToXYZ(i)
+        #saveToXYZ2(i)
         # 保存每步改了什么_start
         start_road_temp=get_atom_by_id(id)
         start_road_temp_str=start_road_temp[2]+","+start_road_temp[3]+","+start_road_temp[4]
-        for j in range(30):
+        for j in range(20):
           change_atom_by_id(id)
           f=get_enthalpy()
           # print f
