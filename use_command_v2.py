@@ -5,6 +5,7 @@ import random
 import time
 from random import choice
 import shutil
+import math
 import Queue
 import numpy
 
@@ -144,23 +145,28 @@ def change_atom_by_id(id):
     strs[id+11]=str(id)+" "+"1"+" "+str(x)+" "+str(y)+" "+str(z)+"\n"
     set_coo(strs)
 #
-def get_atom_change_direction(num,id,weightsArr):
+def get_atom_change_direction(num,id,weightsArr,directionsArr):
     # 八个方向的向量空间
-    randomArr=random_weight(weightsArr[id-1],num)
+    randomArr=random_weight(id,weightsArr[id-1],num,directionsArr)
     return randomArr
 
-def random_weight(weightsArrById,num):
+def random_weight(id,weightsArrById,num,directionsArr):
+    weightList=[]
+    for i in range(len(weightsArrById)):
+        # 用 UCB公式的变种计算权值
+        k=1
+        weightList.append(weightsArrById[i]+k*math.sqrt(1/directionsArr[id-1][i]))    # 权重求和
     total = 0
     # id-1是因为编号是从1开始的
-    for i in range(len(weightsArrById)):
-        total = total + weightsArrById[i]   # 权重求和
+    for i in range(len(weightList)):
+        total = total + weightList[i]   # 权重求和
     ret = []
     keys = [1,2,3,4,5,6,7,8]
     while len(ret)<num:
         ra = random.uniform(0, total)  # 在0与权重和之前获取一个随机数
         curr_sum = 0
         for k in keys:
-            curr_sum += weightsArrById[k - 1]  # 在遍历中，累加当前权重值
+            curr_sum += weightList[k - 1]  # 在遍历中，累加当前权重值
             if ra <= curr_sum:  # 当随机数<=当前权重和时，返回权重key
                 if(k not in ret):
                     ret.append(k)
@@ -254,7 +260,22 @@ def find_direction_value(init_point_list):
         direction_lengths.append(direction_length)
     return directions,direction_lengths
 
-
+def out_directionsArr(directionsArr):
+    f = open('directionsArr.txt', 'a')
+    for str_temp in directionsArr:
+        for i in str_temp:
+            f.write(str(i)+",")
+        f.write("\n")
+    f.write("----------------------------------------" + "\n")
+    f.close()
+def out_weightsArr(weightsArr):
+    f = open('weightsArr.txt', 'a')
+    for str_temp in weightsArr:
+        for i in str_temp:
+            f.write(str(i)+",")
+        f.write("\n")
+    f.write("----------------------------------------"+"\n")
+    f.close()
 
 def run_one_step(weightsArr,directionsArr):
     # 一些初始化操作
@@ -263,8 +284,7 @@ def run_one_step(weightsArr,directionsArr):
     total_max=get_enthalpy()
     print "初始能量是: "+total_max
     # get_atoms()
-    # 选择中间8个原子
-    # choose_list=[2,4,5,6,8,9,11,12]
+    # 选择所有原子
     init_point_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
     choose_list = [1,2,3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
     # 一个元素选中后多少次以后才能被重新选中
@@ -272,8 +292,8 @@ def run_one_step(weightsArr,directionsArr):
     q = Queue.Queue(maxsize = unpickTime)
     not_better_length=0
     run_length=0
-    # 若20步找不到最优解则停止
-    while not_better_length<5:
+    # 若20步找不到更优解(更低能量)则停止
+    while not_better_length<20:
         not_better_length=not_better_length+1
         run_length=run_length+1
         print "循环进行到: "+str(run_length)+"  连续未找到更优解的长度为: "+str(not_better_length)
@@ -293,7 +313,7 @@ def run_one_step(weightsArr,directionsArr):
         # 保存xyz,为了得到xyz文件来动画显示
         saveToXYZ2()
         # 获得要变的atom方向,参数是返回几个方向
-        directionArr=get_atom_change_direction(4,id,weightsArr)
+        directionArr=get_atom_change_direction(4,id,weightsArr,directionsArr)
         # 最终走的方向
         temp_direction=0
         # 开始改这个c原子的坐标, 每次都往八个方向里按权重随机选四个方向
@@ -322,7 +342,7 @@ def run_one_step(weightsArr,directionsArr):
     #更新weight值
     directions,direction_lengths=find_direction_value(init_point_list)
     for i in range(len(directions)):
-        weightsArr[i][directions[i]-1]=weightsArr[i][directions[i]-1]+direction_lengths[i]
+        weightsArr[i][directions[i]-1]=round(weightsArr[i][directions[i]-1]+direction_lengths[i],3)
 
 def main():
     # 一些初始化操作
@@ -334,9 +354,12 @@ def main():
     # 每个方向走的次数
     directionsArr = numpy.ones([14, 8])
     # 开始计算
-    for i in range(3):
+    for i in range(20):
         print '.................'+str(i)+'........................'
         run_one_step(weightsArr,directionsArr)
+        out_weightsArr(weightsArr)
+        out_directionsArr(directionsArr)
+
     # 显示用时
     elapsed = (time.clock() - start)
     print("Time used:", elapsed)
