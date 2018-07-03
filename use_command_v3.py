@@ -7,6 +7,7 @@ from random import choice
 import shutil
 import math
 import Queue
+from termcolor import *
 import numpy
 
 # 完成一些文件清空工作
@@ -149,17 +150,15 @@ def change_atom_by_id(id):
     strs[id+11]=str(id)+" "+"1"+" "+str(x)+" "+str(y)+" "+str(z)+"\n"
     set_coo(strs)
 #
-def get_atom_change_direction(num,id,weightsArr,directionsArr):
+def get_atom_change_direction(num,id,weightsAfterCalculateArr):
     # 八个方向的向量空间
-    randomArr=random_weight(id,weightsArr[id-1],num,directionsArr)
+    randomArr=random_weight(id,num,weightsAfterCalculateArr)
     return randomArr
 
-def random_weight(id,weightsArrById,num,directionsArr):
+def random_weight(id,num,weightsAfterCalculateArr):
     weightList=[]
-    for i in range(len(weightsArrById)):
-        # 用 UCB公式的变种计算权值
-        k=1
-        weightList.append(weightsArrById[i]+k*math.sqrt(1/directionsArr[id-1][i]))    # 权重求和
+    for i in range(len(weightsAfterCalculateArr[id-1])):
+        weightList.append(weightsAfterCalculateArr[id-1][i])    # 权重求和
     total = 0
     # id-1是因为编号是从1开始的
     for i in range(len(weightList)):
@@ -282,7 +281,81 @@ def out_weightsArr(weightsArr):
     f.write("----------------------------------------"+"\n")
     f.close()
 
-def run_one_step(weightsArr,directionsArr):
+def out_weightsAfterCalculateArr(weightsAfterCalculateArr,directions):
+    f = open('weightsAfterCalculate.txt', 'a')
+    n = 0
+    for str_temp in weightsAfterCalculateArr:
+        m = 0
+        for i in str_temp:
+            if m==directions[n]-1:
+                f.write("["+str(i)+"]")
+            else:
+                f.write(" "+str(i) + " ")
+            m=m+1
+        n = n + 1
+        f.write("\n")
+    f.write("----------------------------------------"+"\n")
+    f.close()
+
+def print_weightsAfterCalculateArr(weightsAfterCalculateArr,directions):
+    print (colored("红色为各点上一次降到最低点时各坐标情况","red"))
+    # 输出矩阵
+    n=0
+    for str_temp in weightsAfterCalculateArr:
+        m=0
+        for i in str_temp:
+            if m==directions[n]-1:
+                print(colored(str(i) + ",","red")),
+            else:
+                print(str(i)+","),
+            m=m+1
+        n=n+1
+        print("\n"),
+    print("----------------------------------------"+"\n"),
+
+# 从文件中读取 weightsAfterCalculateArr
+def get_my_weightsAfterCalculateArr_values():
+    weightsAfterCalculateArr = numpy.ones([14, 8])
+    f = open('myWeightsAfterCalculateArrValues.txt')
+    strs = f.readlines()
+    i=0
+    for str in strs:
+        str = str.split(",")
+        for j in range(8):
+            weightsAfterCalculateArr[i][j]=str[j]
+        i=i+1
+    f.close()
+    return weightsAfterCalculateArr
+
+# 从文件中读取 weightsArr
+def get_my_weightsArr_values():
+    weightsArr = numpy.ones([14, 8])
+    f = open('myWeightsArrValues.txt')
+    strs = f.readlines()
+    i=0
+    for str in strs:
+        str = str.split(",")
+        for j in range(8):
+            weightsArr[i][j]=str[j]
+        i=i+1
+    f.close()
+    return weightsArr
+
+# 从文件中读取 directionsArr
+def get_my_directionsArr_values():
+    directionsArr = numpy.ones([14, 8])
+    f = open('myDirectionsArrValues.txt')
+    strs = f.readlines()
+    i=0
+    for str in strs:
+        str = str.split(",")
+        for j in range(8):
+            directionsArr[i][j]=str[j]
+        i=i+1
+    f.close()
+    return directionsArr
+
+def run_one_step(weightsArr,directionsArr,weightsAfterCalculateArr):
     # 一些初始化操作
     initDeal()
     # 初始化最大值
@@ -318,7 +391,7 @@ def run_one_step(weightsArr,directionsArr):
         # 保存xyz,为了得到xyz文件来动画显示
         saveToXYZ2()
         # 获得要变的atom方向,参数是返回几个方向
-        directionArr=get_atom_change_direction(4,id,weightsArr,directionsArr)
+        directionArr=get_atom_change_direction(4,id,weightsAfterCalculateArr)
         # 最终走的方向
         temp_direction=0
         # 开始改这个c原子的坐标, 每次都往八个方向里按权重随机选四个方向
@@ -344,10 +417,20 @@ def run_one_step(weightsArr,directionsArr):
         # 给走的方向加一次 -1是因为从1开始
         directionsArr[id-1][temp_direction-1]=directionsArr[id-1][temp_direction-1]+1
         print str(id)+"的方向"+str(temp_direction)+"加1,变为: "+str(directionsArr[id-1][temp_direction-1])
-    #更新weight值
+    #更新 weight 值
     directions,direction_lengths=find_direction_value(init_point_list)
     for i in range(len(directions)):
         weightsArr[i][directions[i]-1]=round(weightsArr[i][directions[i]-1]+direction_lengths[i],3)
+    #更新 weightsAfterCalculateArr
+    for i in range(len(weightsAfterCalculateArr)):
+        for j in range(len(weightsAfterCalculateArr[0])):
+            # 用 UCB公式的变种计算权值
+            k = 2
+            weightsAfterCalculateArr[i][j] = round(
+                weightsArr[i][j] + k * math.sqrt(1 / directionsArr[i][j]), 1)
+    print_weightsAfterCalculateArr(weightsAfterCalculateArr,directions)
+    out_weightsAfterCalculateArr(weightsAfterCalculateArr,directions)
+
 
 def main():
     # 一些初始化操作
@@ -355,13 +438,20 @@ def main():
     # 计算时间用
     start = time.clock()
     # 设置权值
-    weightsArr=numpy.ones([14,8])
+    # weightsArr=numpy.ones([14,8])
+    # 计算后的概率权重表权值
+    # 初始化为1
+    # weightsAfterCalculateArr=numpy.ones([14,8])
+    # directionsArr = numpy.ones([14, 8])
+    # 从文件中获得
+    weightsArr = get_my_weightsArr_values()
+    weightsAfterCalculateArr = get_my_weightsAfterCalculateArr_values()
     # 每个方向走的次数
-    directionsArr = numpy.ones([14, 8])
+    directionsArr = get_my_directionsArr_values()
     # 开始计算 range里是总次数
-    for i in range(2):
+    for i in range(20):
         print '.................'+str(i)+'........................'
-        run_one_step(weightsArr,directionsArr)
+        run_one_step(weightsArr,directionsArr,weightsAfterCalculateArr)
         out_weightsArr(weightsArr)
         out_directionsArr(directionsArr)
     # 显示用时
