@@ -177,7 +177,8 @@ def random_weight(id,num,weightsAfterCalculateArr):
     return ret
 
 def change_atom_by_id_and_direction(id,direction):
-    step=0.1
+    step=0.01
+    blow=0.05
     # print "-------更改原子:"+str(id)+"--------"
     strs=get_coo()
     xyz=get_atom_by_id(id)
@@ -185,37 +186,37 @@ def change_atom_by_id_and_direction(id,direction):
     y_step = 0
     z_step = 0
     if direction==1:
-        x_step = random.uniform(0, step)
-        y_step = random.uniform(0, step)
-        z_step = random.uniform(0, step)
+        x_step = random.uniform(blow,blow+step)
+        y_step = random.uniform(blow,blow+step)
+        z_step = random.uniform(blow,blow+step)
     if direction==2:
-        x_step = random.uniform(-step, 0)
-        y_step = random.uniform(0, step)
-        z_step = random.uniform(0, step)
+        x_step = random.uniform(-blow-step, -blow)
+        y_step = random.uniform(blow,blow+step)
+        z_step = random.uniform(blow,blow+step)
     if direction==3:
-        x_step = random.uniform(0, step)
-        y_step = random.uniform(-step, 0)
-        z_step = random.uniform(0, step)
+        x_step = random.uniform(blow, blow+step)
+        y_step = random.uniform(-blow-step, -blow)
+        z_step = random.uniform(blow,blow+step)
     if direction==4:
-        x_step = random.uniform(0, step)
-        y_step = random.uniform(0, step)
-        z_step = random.uniform(-step, 0)
+        x_step = random.uniform(blow,blow+step)
+        y_step = random.uniform(blow,blow+step)
+        z_step = random.uniform(-blow-step, -blow)
     if direction==5:
-        x_step = random.uniform(-step, 0)
-        y_step = random.uniform(-step, 0)
-        z_step = random.uniform(0, step)
+        x_step = random.uniform(-blow-step, -blow)
+        y_step = random.uniform(-blow-step, -blow)
+        z_step = random.uniform(blow,blow+step)
     if direction==6:
-        x_step = random.uniform(-step, 0)
-        y_step = random.uniform(0, step)
-        z_step = random.uniform(-step, 0)
+        x_step = random.uniform(-blow-step, -blow)
+        y_step = random.uniform(blow,blow+step)
+        z_step = random.uniform(-blow-step, -blow)
     if direction==7:
-        x_step = random.uniform(0, step)
-        y_step = random.uniform(-step, 0)
-        z_step = random.uniform(-step, 0)
+        x_step = random.uniform(blow,blow+step)
+        y_step = random.uniform(-blow-step, -blow)
+        z_step = random.uniform(-blow-step, -blow)
     if direction==8:
-        x_step = random.uniform(-step, 0)
-        y_step = random.uniform(-step, 0)
-        z_step = random.uniform(-step, 0)
+        x_step = random.uniform(-blow-step, -blow)
+        y_step = random.uniform(-blow-step, -blow)
+        z_step = random.uniform(-blow-step, -blow)
     x=float(xyz[2])+float(x_step)
     y = float(xyz[3]) + float(y_step)
     z = float(xyz[4]) + float(z_step)

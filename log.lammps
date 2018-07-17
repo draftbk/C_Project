@@ -11,10 +11,10 @@ atom_style 	atomic      # Define what style of atoms to use in a simulation. htt
 
 
 read_data coo                        # from where coordinates are read
-  triclinic box = (0 0 0) to (30 30 30) with tilt (0 0 0)
+  triclinic box = (-50 -50 -50) to (50 50 50) with tilt (0 0 0)
   1 by 1 by 1 MPI processor grid
   reading atoms ...
-  14 atoms
+  256 atoms
 
 pair_style tersoff                 # Potential type http://lammps.sandia.gov/doc/pair_style.html
 pair_coeff * * SiC.tersoff C            # potential http://lammps.sandia.gov/doc/pair_coeff.html
@@ -28,7 +28,7 @@ compute 	_rg all gyration                # All atoms will be involved in the sim
 min_style 	cg                                    # The algoritm of relaxation
 min_modify 	line backtrack                        # The parameters of minimzation algoritm
 #fix 1 all box/relax iso 1000.0 dilate partial      # Cell relaxation
-fix 1 all npt temp 50 50 1 iso 1 1 1
+fix 1 all nvt temp 300 300 1
 dump 		1 all xyz 50 out.xyz                      # Record animation every 50 steps
 
 dump_modify	1 append yes
@@ -36,50 +36,50 @@ dump_modify	1 append yes
 #----------- geometry optimization----------------------
 
 #minimize        1.0e-16 1.0e-8 15000 30000       # Perform an energy minimization of the system http://lammps.sandia.gov/doc/minimize.html
-run 1
+run 25
 Neighbor list info ...
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 4.1
   ghost atom cutoff = 4.1
-  binsize = 2.05, bins = 15 15 15
+  binsize = 2.05, bins = 49 49 49
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair tersoff, perpetual
       attributes: full, newton on
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 3.712 | 3.712 | 3.712 Mbytes
-Step Temp E_pair E_mol TotEng Press Volume 
-       0            0   -21.166643            0   -21.166643   -7338.8707        27000 
-       1    791.77275   -22.879652            0   -21.549172   -7191.5775     26917.08 
-Loop time of 9.89437e-05 on 1 procs for 1 steps with 14 atoms
+Per MPI rank memory allocation (min/avg/max) = 4.311 | 4.311 | 4.311 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -636.72629            0   -636.72629     184.8524 
+      25    12288.621   -1048.8296            0   -643.78026     115.2378 
+Loop time of 0.0107441 on 1 procs for 25 steps with 256 atoms
 
-Performance: 873.224 ns/day, 0.027 hours/ns, 10106.757 timesteps/s
-64.7% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 201.041 ns/day, 0.119 hours/ns, 2326.860 timesteps/s
+99.4% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 3.6001e-05 | 3.6001e-05 | 3.6001e-05 |   0.0 | 36.39
-Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 2.1458e-06 | 2.1458e-06 | 2.1458e-06 |   0.0 |  2.17
-Output  | 2.1935e-05 | 2.1935e-05 | 2.1935e-05 |   0.0 | 22.17
-Modify  | 3.4809e-05 | 3.4809e-05 | 3.4809e-05 |   0.0 | 35.18
-Other   |            | 4.053e-06  |            |       |  4.10
+Pair    | 0.0096891  | 0.0096891  | 0.0096891  |   0.0 | 90.18
+Neigh   | 0.00081134 | 0.00081134 | 0.00081134 |   0.0 |  7.55
+Comm    | 1.6928e-05 | 1.6928e-05 | 1.6928e-05 |   0.0 |  0.16
+Output  | 1.0014e-05 | 1.0014e-05 | 1.0014e-05 |   0.0 |  0.09
+Modify  | 0.00016975 | 0.00016975 | 0.00016975 |   0.0 |  1.58
+Other   |            | 4.697e-05  |            |       |  0.44
 
-Nlocal:    14 ave 14 max 14 min
+Nlocal:    256 ave 256 max 256 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    2 ave 2 max 2 min
+Nghost:    0 ave 0 max 0 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Neighs:    0 ave 0 max 0 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  90 ave 90 max 90 min
+FullNghs:  3758 ave 3758 max 3758 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 90
-Ave neighs/atom = 6.42857
-Neighbor list builds = 0
+Total # of neighbors = 3758
+Ave neighs/atom = 14.6797
+Neighbor list builds = 2
 Dangerous builds = 0
 ##########################################################
 # Writing Output Enthalpy and Cell Parameters.
@@ -89,7 +89,7 @@ variable h equal enthalpy
 print "enthalpy"
 enthalpy
 print "$h"
--142.369986113455
+-571.854476550946
 variable a equal cellalpha
 variable b equal cellbeta
 variable o equal cellgamma
@@ -99,36 +99,36 @@ variable y equal cellc
 print "Lattice parameters"
 Lattice parameters
 variable a1 equal $g
-variable a1 equal 29.9692575099411
+variable a1 equal 100
 print "${a1} 0.00  0.00"
-29.9692575099411 0.00  0.00
+100 0.00  0.00
 variable b1 equal $h*cos($o*PI/180)
-variable b1 equal 29.9692575099411*cos($o*PI/180)
-variable b1 equal 29.9692575099411*cos(90*PI/180)
+variable b1 equal 100*cos($o*PI/180)
+variable b1 equal 100*cos(90*PI/180)
 variable b2 equal $h*sin($o*PI/180)
-variable b2 equal 29.9692575099411*sin($o*PI/180)
-variable b2 equal 29.9692575099411*sin(90*PI/180)
+variable b2 equal 100*sin($o*PI/180)
+variable b2 equal 100*sin(90*PI/180)
 print "${b1} ${b2}  0.00"
-1.83508776411861e-15 29.9692575099411  0.00
+6.12323399573677e-15 100  0.00
 variable c1 equal $y*cos($b*PI/180)
-variable c1 equal 29.9692575099411*cos($b*PI/180)
-variable c1 equal 29.9692575099411*cos(90*PI/180)
+variable c1 equal 100*cos($b*PI/180)
+variable c1 equal 100*cos(90*PI/180)
 variable c2 equal $y*(cos($a*PI/180)-cos($b*PI/180)*cos($o*PI/180))/sin($o*PI/180)
-variable c2 equal 29.9692575099411*(cos($a*PI/180)-cos($b*PI/180)*cos($o*PI/180))/sin($o*PI/180)
-variable c2 equal 29.9692575099411*(cos(90*PI/180)-cos($b*PI/180)*cos($o*PI/180))/sin($o*PI/180)
-variable c2 equal 29.9692575099411*(cos(90*PI/180)-cos(90*PI/180)*cos($o*PI/180))/sin($o*PI/180)
-variable c2 equal 29.9692575099411*(cos(90*PI/180)-cos(90*PI/180)*cos(90*PI/180))/sin($o*PI/180)
-variable c2 equal 29.9692575099411*(cos(90*PI/180)-cos(90*PI/180)*cos(90*PI/180))/sin(90*PI/180)
+variable c2 equal 100*(cos($a*PI/180)-cos($b*PI/180)*cos($o*PI/180))/sin($o*PI/180)
+variable c2 equal 100*(cos(90*PI/180)-cos($b*PI/180)*cos($o*PI/180))/sin($o*PI/180)
+variable c2 equal 100*(cos(90*PI/180)-cos(90*PI/180)*cos($o*PI/180))/sin($o*PI/180)
+variable c2 equal 100*(cos(90*PI/180)-cos(90*PI/180)*cos(90*PI/180))/sin($o*PI/180)
+variable c2 equal 100*(cos(90*PI/180)-cos(90*PI/180)*cos(90*PI/180))/sin(90*PI/180)
 variable c3 equal $y*sqrt(1+2*cos($a*PI/180)*cos($b*PI/180)*cos($o*PI/180)-cos($a*PI/180)^2-cos($b*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
-variable c3 equal 29.9692575099411*sqrt(1+2*cos($a*PI/180)*cos($b*PI/180)*cos($o*PI/180)-cos($a*PI/180)^2-cos($b*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
-variable c3 equal 29.9692575099411*sqrt(1+2*cos(90*PI/180)*cos($b*PI/180)*cos($o*PI/180)-cos($a*PI/180)^2-cos($b*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
-variable c3 equal 29.9692575099411*sqrt(1+2*cos(90*PI/180)*cos(90*PI/180)*cos($o*PI/180)-cos($a*PI/180)^2-cos($b*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
-variable c3 equal 29.9692575099411*sqrt(1+2*cos(90*PI/180)*cos(90*PI/180)*cos(90*PI/180)-cos($a*PI/180)^2-cos($b*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
-variable c3 equal 29.9692575099411*sqrt(1+2*cos(90*PI/180)*cos(90*PI/180)*cos(90*PI/180)-cos(90*PI/180)^2-cos($b*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
-variable c3 equal 29.9692575099411*sqrt(1+2*cos(90*PI/180)*cos(90*PI/180)*cos(90*PI/180)-cos(90*PI/180)^2-cos(90*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
-variable c3 equal 29.9692575099411*sqrt(1+2*cos(90*PI/180)*cos(90*PI/180)*cos(90*PI/180)-cos(90*PI/180)^2-cos(90*PI/180)^2-cos(90*PI/180)^2)/sin($o*PI/180)
-variable c3 equal 29.9692575099411*sqrt(1+2*cos(90*PI/180)*cos(90*PI/180)*cos(90*PI/180)-cos(90*PI/180)^2-cos(90*PI/180)^2-cos(90*PI/180)^2)/sin(90*PI/180)
+variable c3 equal 100*sqrt(1+2*cos($a*PI/180)*cos($b*PI/180)*cos($o*PI/180)-cos($a*PI/180)^2-cos($b*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
+variable c3 equal 100*sqrt(1+2*cos(90*PI/180)*cos($b*PI/180)*cos($o*PI/180)-cos($a*PI/180)^2-cos($b*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
+variable c3 equal 100*sqrt(1+2*cos(90*PI/180)*cos(90*PI/180)*cos($o*PI/180)-cos($a*PI/180)^2-cos($b*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
+variable c3 equal 100*sqrt(1+2*cos(90*PI/180)*cos(90*PI/180)*cos(90*PI/180)-cos($a*PI/180)^2-cos($b*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
+variable c3 equal 100*sqrt(1+2*cos(90*PI/180)*cos(90*PI/180)*cos(90*PI/180)-cos(90*PI/180)^2-cos($b*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
+variable c3 equal 100*sqrt(1+2*cos(90*PI/180)*cos(90*PI/180)*cos(90*PI/180)-cos(90*PI/180)^2-cos(90*PI/180)^2-cos($o*PI/180)^2)/sin($o*PI/180)
+variable c3 equal 100*sqrt(1+2*cos(90*PI/180)*cos(90*PI/180)*cos(90*PI/180)-cos(90*PI/180)^2-cos(90*PI/180)^2-cos(90*PI/180)^2)/sin($o*PI/180)
+variable c3 equal 100*sqrt(1+2*cos(90*PI/180)*cos(90*PI/180)*cos(90*PI/180)-cos(90*PI/180)^2-cos(90*PI/180)^2-cos(90*PI/180)^2)/sin(90*PI/180)
 print "${c1}  ${c2}  ${c3}"
-1.83508776411861e-15  1.83508776411861e-15  29.9692575099411
+6.12323399573677e-15  6.12323399573677e-15  100
 #---------------------------------------
 Total wall time: 0:00:00

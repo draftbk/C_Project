@@ -177,8 +177,8 @@ def random_weight(id,num,weightsAfterCalculateArr):
     return ret
 
 def change_atom_by_id_and_direction(id,direction):
-    step=0.01
-    blow=0.01
+    step=0.001
+    blow=0.0386
     # print "-------更改原子:"+str(id)+"--------"
     strs=get_coo()
     xyz=get_atom_by_id(id)
@@ -314,6 +314,166 @@ def print_weightsAfterCalculateArr(weightsAfterCalculateArr,directions):
         print("\n"),
     print("----------------------------------------"+"\n"),
 
+def find_direction_smalldirection_by_two_point(i,xyz_init,xyz_best):
+    direction = 0
+    direction_small = 0
+    # 输出位置变动
+    print str(i)+","+str(float(xyz_best[0]) - float(xyz_init[0]))+","+str(float(xyz_best[1]) - float(xyz_init[1]))+","+str(float(xyz_best[2]) - float(xyz_init[2]))
+
+    # 输出在哪个象限
+    if float(xyz_best[0]) - float(xyz_init[0]) > 0 and float(xyz_best[1]) - float(xyz_init[1]) > 0 and float(
+            xyz_best[2]) - float(xyz_init[2]) > 0:
+        direction = 1
+    if float(xyz_best[0]) - float(xyz_init[0]) < 0 and float(xyz_best[1]) - float(xyz_init[1]) > 0 and float(
+            xyz_best[2]) - float(xyz_init[2]) > 0:
+        direction = 2
+    if float(xyz_best[0]) - float(xyz_init[0]) > 0 and float(xyz_best[1]) - float(xyz_init[1]) < 0 and float(
+            xyz_best[2]) - float(xyz_init[2]) > 0:
+        direction = 3
+    if float(xyz_best[0]) - float(xyz_init[0]) > 0 and float(xyz_best[1]) - float(xyz_init[1]) > 0 and float(
+            xyz_best[2]) - float(xyz_init[2]) < 0:
+        direction = 4
+    if float(xyz_best[0]) - float(xyz_init[0]) < 0 and float(xyz_best[1]) - float(xyz_init[1]) < 0 and float(
+            xyz_best[2]) - float(xyz_init[2]) > 0:
+        direction = 5
+    if float(xyz_best[0]) - float(xyz_init[0]) < 0 and float(xyz_best[1]) - float(xyz_init[1]) > 0 and float(
+            xyz_best[2]) - float(xyz_init[2]) < 0:
+        direction = 6
+    if float(xyz_best[0]) - float(xyz_init[0]) > 0 and float(xyz_best[1]) - float(xyz_init[1]) < 0 and float(
+            xyz_best[2]) - float(xyz_init[2]) < 0:
+        direction = 7
+    if float(xyz_best[0]) - float(xyz_init[0]) < 0 and float(xyz_best[1]) - float(xyz_init[1]) < 0 and float(
+            xyz_best[2]) - float(xyz_init[2]) < 0:
+        direction = 8
+    k=0.386
+    # 输出在哪个小象限
+    if abs(float(xyz_best[0]) - float(xyz_init[0])) > k and abs(float(xyz_best[1]) - float(xyz_init[1])) > k and abs(
+                    float(xyz_best[2]) - float(xyz_init[2])) > k:
+        direction_small = 1
+    if abs(float(xyz_best[0]) - float(xyz_init[0])) <= k and abs(float(xyz_best[1]) - float(xyz_init[1])) > k and abs(
+                    float(xyz_best[2]) - float(xyz_init[2])) > k:
+        direction_small = 2
+    if abs(float(xyz_best[0]) - float(xyz_init[0])) > k and abs(float(xyz_best[1]) - float(xyz_init[1])) <= k and abs(
+                    float(xyz_best[2]) - float(xyz_init[2])) > k:
+        direction_small = 3
+    if abs(float(xyz_best[0]) - float(xyz_init[0])) > k and abs(float(xyz_best[1]) - float(xyz_init[1])) > k and abs(
+                    float(xyz_best[2]) - float(xyz_init[2])) <= k:
+        direction_small = 4
+    if abs(float(xyz_best[0]) - float(xyz_init[0])) <= k and abs(float(xyz_best[1]) - float(xyz_init[1])) <= k and abs(
+                    float(xyz_best[2]) - float(xyz_init[2])) > k:
+        direction_small = 5
+    if abs(float(xyz_best[0]) - float(xyz_init[0])) <= k and abs(float(xyz_best[1]) - float(xyz_init[1])) > k and abs(
+                    float(xyz_best[2]) - float(xyz_init[2])) <= k:
+        direction_small = 6
+    if abs(float(xyz_best[0]) - float(xyz_init[0])) > k and abs(float(xyz_best[1]) - float(xyz_init[1])) <= k and abs(
+                    float(xyz_best[2]) - float(xyz_init[2])) <= k:
+        direction_small = 7
+    if abs(float(xyz_best[0]) - float(xyz_init[0])) <= k and abs(float(xyz_best[1]) - float(xyz_init[1])) <= k and abs(
+                    float(xyz_best[2]) - float(xyz_init[2])) <= k:
+        direction_small = 8
+    return direction, direction_small
+
+def find_direction_smalldirection(init_point_list):
+    directions = []
+    direction_smalls = []
+    for i in init_point_list:
+        xyz_init = get_atom_by_id_and_name(i,'coo_init')
+        xyz_best = get_atom_by_id_and_name(i,'coo_-156')
+        direction, direction_small=find_direction_smalldirection_by_two_point(i,xyz_init[2:], xyz_best[2:])
+        # 保存方向
+        directions.append(direction)
+        direction_smalls.append(direction_small)
+    return directions, direction_smalls
+
+def change_atom_by_id_and_direction_and_smalldirection(id,direction,smalldirection):
+    k=0.386
+    step=0.386
+    blow=[0,0,0]
+    # print "-------更改原子:"+str(id)+"--------"
+    strs=get_coo()
+    xyz=get_atom_by_id(id)
+    x_step = 0
+    y_step = 0
+    z_step = 0
+    if smalldirection==1:
+        blow[0]=step
+        blow[1]=step
+        blow[2]=step
+    if smalldirection==2:
+        blow[0]=0
+        blow[1]=step
+        blow[2]=step
+    if smalldirection==3:
+        blow[0]=step
+        blow[1]=0
+        blow[2]=step
+    if smalldirection==4:
+        blow[0]=step
+        blow[1]=step
+        blow[2]=0
+    if smalldirection==5:
+        blow[0]=0
+        blow[1]=0
+        blow[2]=step
+    if smalldirection==6:
+        blow[0]=0
+        blow[1]=step
+        blow[2]=0
+    if smalldirection==7:
+        blow[0]=step
+        blow[1]=0
+        blow[2]=0
+    if smalldirection==8:
+        blow[0]=0
+        blow[1]=0
+        blow[2]=0
+    if direction==1:
+        x_step = random.uniform(blow[0],blow[0]+step)
+        y_step = random.uniform(blow[1],blow[1]+step)
+        z_step = random.uniform(blow[2],blow[2]+step)
+    if direction==2:
+        x_step = random.uniform(-blow[0]-step, -blow[0])
+        y_step = random.uniform(blow[1],blow[1]+step)
+        z_step = random.uniform(blow[2],blow[2]+step)
+    if direction==3:
+        x_step = random.uniform(blow[0], blow[0]+step)
+        y_step = random.uniform(-blow[1]-step, -blow[1])
+        z_step = random.uniform(blow[2],blow[2]+step)
+    if direction==4:
+        x_step = random.uniform(blow[0],blow[0]+step)
+        y_step = random.uniform(blow[1],blow[1]+step)
+        z_step = random.uniform(-blow[2]-step, -blow[2])
+    if direction==5:
+        x_step = random.uniform(-blow[0]-step, -blow[0])
+        y_step = random.uniform(-blow[1]-step, -blow[1])
+        z_step = random.uniform(blow[2],blow[2]+step)
+    if direction==6:
+        x_step = random.uniform(-blow[0]-step, -blow[0])
+        y_step = random.uniform(blow[1],blow[1]+step)
+        z_step = random.uniform(-blow[2]-step, -blow[2])
+    if direction==7:
+        x_step = random.uniform(blow[0],blow[0]+step)
+        y_step = random.uniform(-blow[1]-step, -blow[1])
+        z_step = random.uniform(-blow[2]-step, -blow[2])
+    if direction==8:
+        x_step = random.uniform(-blow[0]-step, -blow[0])
+        y_step = random.uniform(-blow[1]-step, -blow[1])
+        z_step = random.uniform(-blow[2]-step, -blow[2])
+    print x_step
+    print y_step
+    print z_step
+    x=float(xyz[2])+float(x_step)
+    y = float(xyz[3]) + float(y_step)
+    z = float(xyz[4]) + float(z_step)
+    strs[id+11]=str(id)+" "+"1"+" "+str(x)+" "+str(y)+" "+str(z)+"\n"
+    set_coo(strs)
+
+def go_to_small_quadrant(init_point_list):
+    directions, direction_smalls=find_direction_smalldirection(init_point_list)
+    for i in init_point_list:
+        change_atom_by_id_and_direction_and_smalldirection(i,directions[i-1],direction_smalls[i-1])
+
+
 def run_one_step(weightsArr,directionsArr,weightsAfterCalculateArr):
     # 一些初始化操作
     initDeal()
@@ -325,10 +485,12 @@ def run_one_step(weightsArr,directionsArr,weightsAfterCalculateArr):
     init_point_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
     choose_list = [1,2,3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
     # 一个元素选中后多少次以后才能被重新选中
-    unpickTime = 3
+    unpickTime = 13
     q = Queue.Queue(maxsize = unpickTime)
     not_better_length=0
     run_length=0
+    # 先根据上次较低的能量随机到子象限
+    go_to_small_quadrant(init_point_list)
     # 若20步找不到更优解(更低能量)则停止
     while not_better_length<30:
         not_better_length=not_better_length+1
@@ -348,7 +510,7 @@ def run_one_step(weightsArr,directionsArr,weightsAfterCalculateArr):
         # 设置暂时的最大值
         temp_max=10000
         # 保存xyz,为了得到xyz文件来动画显示
-        saveToXYZ2()
+        # saveToXYZ2()
         # 获得要变的atom方向,参数是返回几个方向
         directionArr=get_atom_change_direction(4,id,weightsAfterCalculateArr)
         # 最终走的方向
@@ -364,9 +526,10 @@ def run_one_step(weightsArr,directionsArr,weightsAfterCalculateArr):
             if float(f) < temp_max:
                 # 保存较大的值以及此时的str(位置)以及此时走的方向(direction)
                 temp_max = float(f)
-                tempStr = get_coo()
+                # tempStr = get_coo()
                 temp_direction=direction
                 if float(f) < total_max:
+                    tempStr = get_coo()
                     total_max = float(f)
                     saveToFinal()
                     not_better_length = 0
@@ -402,6 +565,7 @@ def get_my_weightsAfterCalculateArr_values():
         i=i+1
     f.close()
     return weightsAfterCalculateArr
+
 
 def main():
     # 一些初始化操作
