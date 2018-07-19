@@ -6,6 +6,7 @@ import time
 from random import choice
 import shutil
 import Queue
+import numpy
 
 
 
@@ -17,8 +18,12 @@ def initDeal():
     # 清空xyzs文件夹
     shutil.rmtree('xyzs')
     os.mkdir('xyzs')
-    # 清空log_road
-    f = open('log_road', 'w')
+    shutil.rmtree('xyzs2')
+    os.mkdir('xyzs2')
+    shutil.rmtree('xyzs3')
+    os.mkdir('xyzs3')
+    # 清空energy
+    f = open('energy', 'w')
     f.truncate()
     f.close()
     # 把coo_init复制回coo
@@ -52,27 +57,38 @@ def saveToFinal():
         f.write(str_temp)
     f.close()
 
-def saveToXYZ(i):
+def saveToXYZ(n,atomNumber):
     f = open('out.xyz')
     strs = f.readlines()
-    f = open('xyzs/out'+str(i)+'.xyz', 'w')
+    f = open('xyzs/out'+str(n)+'.xyz', 'w')
     f.truncate()
     for str_temp in strs:
         f.write(str_temp)
     f = open('out.xyz', 'w')
     f.truncate()
     f.close()
+    pattern = re.compile(r'\S+')
+    xyzs = []
+    for i in strs[-atomNumber:]:
+        xyz = re.findall(pattern, i)
+        xyzs.append("1" + " " + xyz[1] + " " + xyz[2] + " " + xyz[3])
 
-def saveToXYZ2(i):
-    f = open('xyzs2/out0' + '.xyz', 'a')
-    # f.truncate()
-    number=14
-    f.write(str(number)+"\n")
-    f.write("SLF"+ "\n")
-    for i in range(number):
-        xyz=get_atom_by_id(i+1)
-        f.write("C"+" "+xyz[2]+" "+xyz[3]+" "+xyz[4]+"\n")
+    f = open('xyzs2/out_'+str(n)+'_after'+'.xyz', 'w')
     f.truncate()
+    f.write(str(atomNumber)+"\nAtoms. Timestep: 0\n")
+    for str_temp in xyzs:
+        f.write(str_temp + "\n")
+    f.close()
+    xyzs = []
+    for i in strs[2:atomNumber+2]:
+        xyz = re.findall(pattern, i)
+        xyzs.append("1" + " " + xyz[1] + " " + xyz[2] + " " + xyz[3])
+
+    f = open('xyzs2/out_'+str(n)+'_0'+'.xyz', 'w')
+    f.truncate()
+    f.write(str(atomNumber) + "\nAtoms. Timestep: 0\n")
+    for str_temp in xyzs:
+        f.write(str_temp + "\n")
     f.close()
 
 def saveToRoad(i):
@@ -150,8 +166,30 @@ def get_atom_by_id(id):
     xyz = re.findall(pattern, strs[id+11])
     return xyz
 
+def get_atoms_center(number):
+    # print "-------输出原子信息--------"
+    strs=get_coo()
+    tagStart=0
+    x=[]
+    y=[]
+    z=[]
+    center=[]
+    for str in strs:
+        if(tagStart==1):
+            pattern = re.compile(r'\S+')
+            atom= re.findall(pattern, str)
+            if len(atom)>0:
+                x.append(float(atom[2]))
+                y.append(float(atom[3]))
+                z.append(float(atom[4]))
+        if str.find("Atoms")==0:
+            tagStart=1
+    center.append(numpy.mean(x))
+    center.append(numpy.mean(y))
+    center.append(numpy.mean(z))
+    return center
 def change_atom_by_id(id):
-    step=0.5
+    step=0.3
     # print "-------更改原子:"+str(id)+"--------"
     strs=get_coo()
     xyz=get_atom_by_id(id)
@@ -164,19 +202,30 @@ def change_atom_by_id(id):
     strs[id+11]=str(id)+" "+"1"+" "+str(x)+" "+str(y)+" "+str(z)+"\n"
     set_coo(strs)
 
-def change_other_atom_by_id(id):
-    step=0.1
-    # print "-------更改原子:"+str(id)+"--------"
+def change_all_atoms(number):
+    center=get_atoms_center(number)
     strs=get_coo()
-    xyz=get_atom_by_id(id)
-    x_step=random.uniform(-step,step)
-    y_step = random.uniform(-step, step)
-    z_step = random.uniform(-step, step)
-    x=float(xyz[2])+float(x_step)
-    y = float(xyz[3]) + float(y_step)
-    z = float(xyz[4]) + float(z_step)
-    strs[id+11]=str(id)+" "+"1"+" "+str(x)+" "+str(y)+" "+str(z)+"\n"
+    for i in range(number):
+        id=i+1
+        pattern = re.compile(r'\S+')
+        xyzs= re.findall(pattern, strs[id+11])
+        distance_2=pow(float(xyzs[2])-center[0],2)+pow(float(xyzs[3])-center[1],2)+pow(float(xyzs[4])-center[2],2)
+        distance=pow(distance_2,1.0/2.0)
+        step = distance / 100.0+0.01
+        x_step = random.uniform(-step, step)
+        y_step = random.uniform(-step, step)
+        z_step = random.uniform(-step, step)
+        step_dis=pow(pow(x_step,2)+pow(y_step,2)+pow(z_step,2), 1.0 / 2.0)
+        x_step=x_step*step/step_dis
+        y_step = y_step * step / step_dis
+        z_step = z_step * step / step_dis
+        x = float(xyzs[2]) + float(x_step)
+        y = float(xyzs[3]) + float(y_step)
+        z = float(xyzs[4]) + float(z_step)
+        strs[id + 11] = str(id) + " " + "1" + " " + str(x) + " " + str(y) + " " + str(z) + "\n"
     set_coo(strs)
+
+
 
 # def drawLine(x,y):
 #     plt.figure(figsize=(8, 4))  # 创建绘图对象
@@ -209,12 +258,31 @@ def get_coo_after_optimization(lastNUmber):
         strs[j + 11] = i+"\n"
     return strs
 
+
+def saveToEnergy(y1, y2):
+    f = open('energy', 'w')
+    j=0
+    for i in y1:
+        if j==0:
+            f.writelines(i)
+            j=1
+        else:
+            f.writelines(","+i)
+    f.writelines("\n")
+    j = 0
+    for i in y2:
+        if j == 0:
+            f.writelines(i)
+            j = 1
+        else:
+            f.writelines("," + i)
+    f.close()
+
+
 def main():
-    atomNumber=256
+    atomNumber=4000
     # 一些初始化操作
     initDeal()
-    # 初始化log_roads,保存到log_road里
-    log_roads=[]
     # 计算时间用
     start = time.clock()
     # 初始化最大值
@@ -230,7 +298,6 @@ def main():
     not_better_length=0
     total_length=0
     # 初始化折线图的xy
-    x = []
     y = []
     y1=[]
     y2=[]
@@ -258,42 +325,30 @@ def main():
         e_0,e_after=get_0_and_after_enthalpy()
         y1.append(e_0)
         y2.append(e_after)
+        # 清空out.xyz
+        f = open('out.xyz', 'w')
+        f.truncate()
+        f.close()
+        # 产生out
+        get_enthalpy()
         # 把现在xyz文件保存到xyzs文件夹
-        saveToXYZ(total_length)
-        # saveToXYZ2(i)
-        # 保存每步改了什么_start
-        start_road_temp=get_atom_by_id(id)
-        start_road_temp_str=start_road_temp[2]+","+start_road_temp[3]+","+start_road_temp[4]
-        for j in range(15):
-          change_atom_by_id(id)
-          for x in range(atomNumber):
-              if x is not id:
-                  change_other_atom_by_id(id)
-          f=get_enthalpy()
-          # print f
-          if float(f)<temp_max:
-              temp_max=float(f)
-              tempStr=get_coo_after_optimization(atomNumber)
-              if float(f)<total_max:
-                  total_max=float(f)
-                  saveToFinal()
-                  not_better_length=0
-                  print "留下改变" + "此时能量为: " + get_enthalpy()
-          set_coo(initStr)
+        saveToXYZ(total_length,atomNumber)
+        for j in range(20):
+            # change_atom_by_id(id)
+            change_all_atoms(atomNumber)
+            f = get_enthalpy()
+            # print f
+            if float(f) < temp_max:
+                temp_max = float(f)
+                tempStr = get_coo_after_optimization(atomNumber)
+                if float(f) < total_max:
+                    total_max = float(f)
+                    saveToFinal()
+                    not_better_length = 0
+                    print "留下改变" + "此时能量为: " + f
+            set_coo(initStr)
         set_coo(tempStr)
-        # 保存每步改了什么_end
-        end_road_temp = get_atom_by_id(id)
-        end_road_temp_str = end_road_temp[2] + "," + end_road_temp[3] + "," + end_road_temp[4]
-        log_roads.append(str(id)+"号原子坐标 from " +start_road_temp_str+" to "+end_road_temp_str+"\n")
-    print get_enthalpy()
-    print y
-    print "[",
-    for i in y:
-        print i + ",",
-    print "]"
-    print x
-    # drawLine(x,y)
-    saveToRoadLog(log_roads)
+    saveToEnergy(y1,y2)
     elapsed = (time.clock() - start)
     print("Time used:", elapsed)
 

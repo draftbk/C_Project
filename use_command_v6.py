@@ -17,6 +17,10 @@ def initDeal():
     # 清空xyzs文件夹
     shutil.rmtree('xyzs')
     os.mkdir('xyzs')
+    shutil.rmtree('xyzs2')
+    os.mkdir('xyzs2')
+    shutil.rmtree('xyzs3')
+    os.mkdir('xyzs3')
     # 清空log_road
     f = open('log_road', 'w')
     f.truncate()
@@ -52,27 +56,38 @@ def saveToFinal():
         f.write(str_temp)
     f.close()
 
-def saveToXYZ(i):
+def saveToXYZ(n):
     f = open('out.xyz')
     strs = f.readlines()
-    f = open('xyzs/out'+str(i)+'.xyz', 'w')
+    f = open('xyzs/out'+str(n)+'.xyz', 'w')
     f.truncate()
     for str_temp in strs:
         f.write(str_temp)
     f = open('out.xyz', 'w')
     f.truncate()
     f.close()
+    pattern = re.compile(r'\S+')
+    xyzs = []
+    for i in strs[-256:]:
+        xyz = re.findall(pattern, i)
+        xyzs.append("1" + " " + xyz[1] + " " + xyz[2] + " " + xyz[3])
 
-def saveToXYZ2(i):
-    f = open('xyzs2/out0' + '.xyz', 'a')
-    # f.truncate()
-    number=14
-    f.write(str(number)+"\n")
-    f.write("SLF"+ "\n")
-    for i in range(number):
-        xyz=get_atom_by_id(i+1)
-        f.write("C"+" "+xyz[2]+" "+xyz[3]+" "+xyz[4]+"\n")
+    f = open('xyzs2/out_'+str(n)+'_after'+'.xyz', 'w')
     f.truncate()
+    f.write("256\nAtoms. Timestep: 0\n")
+    for str_temp in xyzs:
+        f.write(str_temp + "\n")
+    f.close()
+    xyzs = []
+    for i in strs[2:258]:
+        xyz = re.findall(pattern, i)
+        xyzs.append("1" + " " + xyz[1] + " " + xyz[2] + " " + xyz[3])
+
+    f = open('xyzs2/out_'+str(n)+'_0'+'.xyz', 'w')
+    f.truncate()
+    f.write("256\nAtoms. Timestep: 0\n")
+    for str_temp in xyzs:
+        f.write(str_temp + "\n")
     f.close()
 
 def saveToRoad(i):
@@ -234,7 +249,7 @@ def main():
     y = []
     y1=[]
     y2=[]
-    while not_better_length < 50:
+    while not_better_length < 100:
         print y
         print y1
         print y2
@@ -258,28 +273,34 @@ def main():
         e_0,e_after=get_0_and_after_enthalpy()
         y1.append(e_0)
         y2.append(e_after)
+        # 清空out.xyz
+        f = open('out.xyz', 'w')
+        f.truncate()
+        f.close()
+        # 产生out
+        get_enthalpy()
         # 把现在xyz文件保存到xyzs文件夹
         saveToXYZ(total_length)
         # saveToXYZ2(i)
         # 保存每步改了什么_start
         start_road_temp=get_atom_by_id(id)
         start_road_temp_str=start_road_temp[2]+","+start_road_temp[3]+","+start_road_temp[4]
-        for j in range(15):
-          change_atom_by_id(id)
-          for x in range(atomNumber):
-              if x is not id:
-                  change_other_atom_by_id(id)
-          f=get_enthalpy()
-          # print f
-          if float(f)<temp_max:
-              temp_max=float(f)
-              tempStr=get_coo_after_optimization(atomNumber)
-              if float(f)<total_max:
-                  total_max=float(f)
-                  saveToFinal()
-                  not_better_length=0
-                  print "留下改变" + "此时能量为: " + get_enthalpy()
-          set_coo(initStr)
+        for j in range(20):
+            change_atom_by_id(id)
+            for x in range(atomNumber):
+                if x is not id:
+                    change_other_atom_by_id(id)
+            f = get_enthalpy()
+            # print f
+            if float(f) < temp_max:
+                temp_max = float(f)
+                tempStr = get_coo_after_optimization(atomNumber)
+                if float(f) < total_max:
+                    total_max = float(f)
+                    saveToFinal()
+                    not_better_length = 0
+                    print "留下改变" + "此时能量为: " + f
+            set_coo(initStr)
         set_coo(tempStr)
         # 保存每步改了什么_end
         end_road_temp = get_atom_by_id(id)

@@ -23,8 +23,8 @@ compute 	_rg all gyration                # All atoms will be involved in the sim
 min_style 	cg                                    # The algoritm of relaxation
 min_modify 	line backtrack                        # The parameters of minimzation algoritm
 #fix 1 all box/relax iso 1000.0 dilate partial      # Cell relaxation
-fix 1 all nvt temp 300 300 1
-dump 		1 all xyz 50 out.xyz                      # Record animation every 50 steps  
+fix 1 all nvt temp 1000 1000 1
+dump 		1 all xyz 5 out.xyz                      # Record animation every 5 steps
 
 dump_modify	1 append yes
 
