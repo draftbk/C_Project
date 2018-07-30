@@ -24,14 +24,14 @@ min_style 	cg                                    # The algoritm of relaxation
 min_modify 	line backtrack                        # The parameters of minimzation algoritm
 #fix 1 all box/relax iso 1000.0 dilate partial      # Cell relaxation
 fix 1 all nvt temp 1000 1000 1
-dump 		1 all xyz 5 out.xyz                      # Record animation every 5 steps
+dump 		1 all xyz 10 out.xyz                      # Record animation every 50 steps
 
 dump_modify	1 append yes
 
 #----------- geometry optimization----------------------
 
 #minimize        1.0e-16 1.0e-8 15000 30000       # Perform an energy minimization of the system http://lammps.sandia.gov/doc/minimize.html  
-run 25
+run 30
 ##########################################################
 # Writing Output Enthalpy and Cell Parameters.  
 ##########################################################

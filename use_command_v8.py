@@ -122,7 +122,7 @@ def get_enthalpy():
     return b
 
 def get_0_and_after_enthalpy():
-    s = os.popen("lmp_mpi <lammps.in")
+    s = os.popen("lmp_intel_cpu_intelmpi <lammps.in")
     energy_0=0
     energy_after=0
     info = s.readlines()
@@ -187,6 +187,7 @@ def get_atoms_center(number):
     center.append(numpy.mean(y))
     center.append(numpy.mean(z))
     return center
+
 def change_atom_by_id(id):
     step=0.3
     # print "-------更改原子:"+str(id)+"--------"
@@ -210,7 +211,7 @@ def change_all_atoms(number):
         xyzs= re.findall(pattern, strs[id+11])
         distance_2=pow(float(xyzs[2])-center[0],2)+pow(float(xyzs[3])-center[1],2)+pow(float(xyzs[4])-center[2],2)
         distance=pow(distance_2,1.0/2.0)
-        step = distance / 100.0+0.01
+        step = distance / 400.0+0.02
         x_step = random.uniform(-step, step)
         y_step = random.uniform(-step, step)
         z_step = random.uniform(-step, step)
@@ -223,7 +224,6 @@ def change_all_atoms(number):
         z = float(xyzs[4]) + float(z_step)
         strs[id + 11] = str(id) + " " + "1" + " " + str(x) + " " + str(y) + " " + str(z) + "\n"
     set_coo(strs)
-
 
 def get_xyz_after_optimization(lastNUmber):
     f = open('out.xyz')
@@ -247,7 +247,6 @@ def get_coo_after_optimization(lastNUmber):
         strs[j + 11] = i+"\n"
     return strs
 
-
 def saveToEnergy(y1, y2):
     f = open('energy', 'w')
     j=0
@@ -268,7 +267,7 @@ def saveToEnergy(y1, y2):
     f.close()
 
 def run():
-    atomNumber = 256
+    atomNumber = 4000
     # 一些初始化操作
     initDeal()
     # 计算时间用
@@ -289,10 +288,7 @@ def run():
     y = []
     y1 = []
     y2 = []
-    while not_better_length < 2:
-        print y
-        print y1
-        print y2
+    while not_better_length < 100:
         not_better_length = not_better_length + 1
         total_length = total_length + 1
         print "循环进行到: " + str(total_length) + "  连续未找到更优解的长度为: " + str(not_better_length)
@@ -321,7 +317,7 @@ def run():
         get_enthalpy()
         # 把现在xyz文件保存到xyzs文件夹
         saveToXYZ(total_length, atomNumber)
-        for j in range(2):
+        for j in range(20):
             # change_atom_by_id(id)
             change_all_atoms(atomNumber)
             f = get_enthalpy()
@@ -344,15 +340,15 @@ def run():
 
 
 def save_to_data(name):
-    dir="../Data_Saving/"+str(name)
+    dir="../Data_Saving_3/"+str(name)
     print os.popen("mkdir "+dir)
+    # print os.popen("cp -R roads "+dir)
     print os.popen("cp -R xyzs2 "+dir)
     print os.popen("cp -R energy "+dir)
 
 
-
 def main():
-    for i in range(100):
+    for i in range(8,100):
         run()
         save_to_data(i)
 

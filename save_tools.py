@@ -65,11 +65,11 @@ def drawLineText_front(number,dir):
 
 
 def main(name):
-    dir="../Data_Saving/"+name
+    dir="/Users/lfs/Downloads/Data_Saving/"+name
     drawLineText(dir)
-    drawLineText_front(10,dir)
+    drawLineText_front(50,dir)
     print os.popen("cp -R Figure_1.png " + dir)
     print os.popen("cp -R Figure_2.png " + dir)
 
-for i in range(1,6):
+for i in range(0,100):
     main(str(i))
