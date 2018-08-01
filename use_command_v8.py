@@ -337,8 +337,6 @@ def run():
     print("Time used:", elapsed)
 
 
-
-
 def save_to_data(name):
     dir="../Data_Saving_3/"+str(name)
     print os.popen("mkdir "+dir)
